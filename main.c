@@ -1,5 +1,4 @@
 #include "pico/stdlib.h"
-//#include <cstdint>
 #include <stdio.h>
 
 const uint8_t led_pin = 25;
