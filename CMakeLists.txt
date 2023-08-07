@@ -8,10 +8,13 @@ set(CMAKE_CXX_STANDARD 23)
 
 pico_sdk_init()
 
-add_executable(caldo_node main.c)
+add_executable(caldo_node main.cpp
+        hx711_t.cpp
+        hx711_t.h)
 
 pico_add_extra_outputs(${PROJECT_NAME})
 
+target_include_directories(${PROJECT_NAME} PRIVATE  extern/pico-scale/include)
 #Link to pico stdlib
 target_link_libraries(${PROJECT_NAME}
         pico_stdlib
