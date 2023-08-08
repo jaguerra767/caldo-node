@@ -29,11 +29,19 @@ std::optional<std::uint32_t> hx711_t::read() {
 }
 
 void hx711_t::wait_for_ready() {
-
+    while(!is_ready());
 }
 
 std::uint8_t hx711_t::shift_in() const {
-    return 0;
+    std::uint8_t value = 0;
+    for(auto i = 0u; i < 8; ++i){
+        gpio_put(_sck_pin, true);
+        sleep_us(1);
+        value |= gpio_get(_data_pin) << i;
+        gpio_put(_sck_pin, false);
+        sleep_us(1);
+    }
+    return value;
 }
 
 

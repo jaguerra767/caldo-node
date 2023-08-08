@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.24)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 project(caldo_node C CXX ASM)
