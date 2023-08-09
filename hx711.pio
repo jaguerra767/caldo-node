@@ -1,0 +1,37 @@
+.progam hx711_read
+; Used ______________ rpi pico library as reference
+; Drive the HX711 by sending a signal the System Clock input on the device at either 10hz or 80hz
+
+.define BITS_TO_SHIFT  23   ; 24 bits (0 inclusive)
+.define GAIN            0   ; Extra Pulses for gain loop (0 inclusive) 0 = 128, 1 = 64, 2 = 32
+.define T1              2   ; 200 nanoseconds
+
+
+.wrap_target
+wrap_target:
+set x BITS_TO_SHIFT
+set y GAIN 
+wait 0 pin 0
+.shift_in
+  set pins 1                 ; Set clock pin to 1 
+  in pins 1                  ; shift 1 bit from pins into the Input Shift register
+  set pins 0                 ; Set clock pin back to 0
+  jmp x-- shift_in [T1]      ; if x is still > than 0 decrement and jump back to .shift_in label once timer is depleted
+
+
+pull noblock                 ; Load  
+
+.set_gain
+  set pins 1 [T1]            ;
+  set pins 0 [T1]
+  jmp y-- set_gaint
+
+.wrap                        ; Loop back to beginning
+
+% c-sdk {
+// 
+#include "hardware/clocks.h"
+#include "hardware/clocks.h"
+#include "hardware/pio.h"
+#include "hardware/structs/clocks.h"
+}
