@@ -11,6 +11,7 @@ pico_sdk_init()
 add_executable(caldo_node
         main.c
         ring_buffer.c
+        ring_buffer.h
 )
 
 pico_add_extra_outputs(${PROJECT_NAME})

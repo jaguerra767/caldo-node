@@ -21,22 +21,78 @@
 // SOFTWARE.
 
 #include <stdlib.h>
-//#include <stdio.h>
+
 #include <string.h>
 #include <pico/printf.h>
 #include "pico/stdio.h"
 #include "../include/hx711_scale_adaptor.h"
 #include "../include/scale.h"
 #include "tusb.h"
-//#include "../include/common.h"
+#include "ring_buffer.h"
 
-const uint8_t MAX_BUFFER;
+
+#define BUFFER_LEN 1000
 const uint8_t led_pin = 25;
 
+typedef enum read_process_t{
+    READING,
+    MSG_COMPLETE
+}read_process_t;
+
+typedef enum diag_t {
+    SUCCESS,
+    UNKNOWN_CMD
+}diag_t;
+
+read_process_t read_message(ring_buffer_t* buffer){
+    int ch = getchar_timeout_us(0);
+    if(ch != -1){
+        //Leaving '\n' out of the buffer because we process messages right away... revisit if this sucks
+        if(ch == '\n'){
+            return MSG_COMPLETE;
+        }
+        ring_buffer_write(buffer, ch);
+    }
+    return READING;
+}
+
+diag_t parse_msg(ring_buffer_t *buffer){
+    uint8_t device = ring_buffer_read(buffer);
+    printf("Device: %c , %d\n",device, device);
+    uint8_t device_id = ring_buffer_read(buffer);
+    printf("Device_id: %c , %d\n",device_id, device_id);
+    switch(device){
+        case 'q':
+            printf("Query Sent for device: %d\n", device_id);
+            break;
+        case 'a':
+            printf("Actuator command sent for act: %d\n", device_id);
+            uint8_t cmd = ring_buffer_read(buffer);
+            if(cmd == 'o'){
+                printf("OPEN");
+            }else if(cmd == 'c'){
+                printf("CLOSE");
+            }else{
+                printf("Invalid cmd\n");
+            }
+            break;
+        default:
+            printf("Invalid Cmd\n");
+            return UNKNOWN_CMD;
+    }
+    return SUCCESS;
+}
 
 
 
 int main(void) {
+    uint8_t msg_buffer[BUFFER_LEN];
+    ring_buffer_t rb = {
+      .buffer=msg_buffer,
+      .write_index=0,
+      .read_index=0,
+      .max_length=BUFFER_LEN
+    };
 
     stdio_init_all();
     gpio_init(led_pin);
@@ -105,10 +161,17 @@ int main(void) {
     mass_init(&max, mass_g, 0);
     mass_init(&min, mass_g, 0);
 
+    uint8_t cmd[5];
+
     for(;;) {
         gpio_put(led_pin, true);
         memset(str, 0, MASS_TO_STRING_BUFF_SIZE);
+        read_process_t rp = read_message(&rb);
 
+        if(rp==MSG_COMPLETE){
+            printf("Message received\n");
+            parse_msg(&rb);
+        }
         //obtain a mass from the scale
         if(scale_weight(&sc, &mass, &opt)) {
 
@@ -126,15 +189,15 @@ int main(void) {
 
             //display the newly obtained mass...
             mass_to_string(&mass, str);
-            printf("%s", str);
+//            printf("%s", str);
 
             //...the current minimum mass...
             mass_to_string(&min, str);
-            printf(" min: %s", str);
+//            printf(" min: %s", str);
 
             //...and the current maximum mass
             mass_to_string(&max, str);
-            printf(" max: %s\n", str);
+//            printf(" max: %s\n", str);
 
         }
         else {
