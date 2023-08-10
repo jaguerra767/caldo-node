@@ -10,20 +10,23 @@ pico_sdk_init()
 
 add_executable(caldo_node
         main.c
+        ring_buffer.c
 )
 
 pico_add_extra_outputs(${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         extern/pico-scale/include
-        extern/pico-scale/extern/hx711-pico-c/include)
+        #extern/pico-scale/extern/hx711-pico-c/include
+)
 #Link to pico stdlib
 target_link_libraries(${PROJECT_NAME}
         pico_stdlib
         hardware_pio
-        hx711-pico-c
+        pico-scale
 )
-add_subdirectory(/Users/jguerra/caldo/nodes/caldo-node/extern/pico-scale/extern/hx711-pico-c)
+#add_subdirectory(${PROJECT_SOURCE_DIR}/extern/pico-scale/extern/hx711-pico-c)
+add_subdirectory(${PROJECT_SOURCE_DIR}/extern/pico-scale)
 #Enable usb output, disable uart output
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
