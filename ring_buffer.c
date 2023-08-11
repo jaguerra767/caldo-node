@@ -13,7 +13,7 @@ int8_t ring_buffer_write(ring_buffer_t* rb, uint8_t data){
     if(next == rb->read_index){
         return -1; //Error Buffer is full
     }
-    rb->buffer[next] = data;
+    rb->buffer[rb->write_index] = data;
     rb->write_index = next;
     return 0;
 }

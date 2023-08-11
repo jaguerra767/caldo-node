@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <stdlib.h>
+
 
 #include <string.h>
 #include <pico/printf.h>
@@ -34,15 +34,28 @@
 #define BUFFER_LEN 1000
 const uint8_t led_pin = 25;
 
-typedef enum read_process_t{
+typedef enum {
     READING,
     MSG_COMPLETE
 }read_process_t;
 
-typedef enum diag_t {
-    SUCCESS,
-    UNKNOWN_CMD
-}diag_t;
+typedef enum {
+    ACTUATOR,
+    LOAD_CELL,
+    UNKNOWN
+}device_t;
+
+typedef enum {
+    OPEN,
+    CLOSE,
+    INVALID
+}operator_t;
+
+typedef struct {
+    device_t device;
+    uint8_t device_id;
+    operator_t operator;
+}command_t;
 
 read_process_t read_message(ring_buffer_t* buffer){
     int ch = getchar_timeout_us(0);
@@ -56,37 +69,38 @@ read_process_t read_message(ring_buffer_t* buffer){
     return READING;
 }
 
-diag_t parse_msg(ring_buffer_t *buffer){
+
+
+command_t parse_msg(ring_buffer_t *buffer){
+    command_t result;
     uint8_t device = ring_buffer_read(buffer);
-    printf("Device: %c , %d\n",device, device);
-    uint8_t device_id = ring_buffer_read(buffer);
-    printf("Device_id: %c , %d\n",device_id, device_id);
+    result.device_id = ring_buffer_read(buffer);
     switch(device){
         case 'q':
-            printf("Query Sent for device: %d\n", device_id);
+            result.device = LOAD_CELL;
             break;
         case 'a':
-            printf("Actuator command sent for act: %d\n", device_id);
+            result.device = ACTUATOR;
             uint8_t cmd = ring_buffer_read(buffer);
             if(cmd == 'o'){
-                printf("OPEN");
+                result.operator = OPEN;
             }else if(cmd == 'c'){
-                printf("CLOSE");
+                result.operator = CLOSE;
             }else{
-                printf("Invalid cmd\n");
+                result.operator = INVALID;
             }
             break;
         default:
-            printf("Invalid Cmd\n");
-            return UNKNOWN_CMD;
+            result.device = UNKNOWN;
     }
-    return SUCCESS;
+    return result;
 }
 
 
 
 int main(void) {
     uint8_t msg_buffer[BUFFER_LEN];
+    memset(msg_buffer, 0, BUFFER_LEN);
     ring_buffer_t rb = {
       .buffer=msg_buffer,
       .write_index=0,
@@ -134,7 +148,7 @@ int main(void) {
     //4. provide a pointer to the hx711 to the adaptor
     hx711_scale_adaptor_init(&hxsa, &hx);
 
-    //5. initalise the scale
+    //5. initialise the scale
     scale_init(&sc, hx711_scale_adaptor_get_base(&hxsa), unit, refUnit, offset);
 
     //6. spend 10 seconds obtaining as many samples as
@@ -152,182 +166,30 @@ int main(void) {
     }
 
     mass_t mass;
-    mass_t max;
-    mass_t min;
 
     //change to spending 250 milliseconds obtaining
     opt.timeout = 250000;
-
-    mass_init(&max, mass_g, 0);
-    mass_init(&min, mass_g, 0);
-
-    uint8_t cmd[5];
 
     for(;;) {
         gpio_put(led_pin, true);
         memset(str, 0, MASS_TO_STRING_BUFF_SIZE);
         read_process_t rp = read_message(&rb);
-
+        command_t cmd;
         if(rp==MSG_COMPLETE){
             printf("Message received\n");
-            parse_msg(&rb);
+            cmd = parse_msg(&rb);
         }
-        //obtain a mass from the scale
-        if(scale_weight(&sc, &mass, &opt)) {
-
-            //check if the newly obtained mass
-            //is less than the existing minimum mass
-            if(mass_lt(&mass, &min)) {
-                min = mass;
+        if(cmd.device==LOAD_CELL){
+            if(scale_weight(&sc, &mass, &opt)) {
+                mass_to_string(&mass, str);
+                printf("%s\n", str);
             }
-
-            //check if the newly obtained mass
-            //is greater than the existing maximum mass
-            if(mass_gt(&mass, &max)) {
-                max = mass;
+            else {
+                printf("Failed to read weight\n");
             }
-
-            //display the newly obtained mass...
-            mass_to_string(&mass, str);
-//            printf("%s", str);
-
-            //...the current minimum mass...
-            mass_to_string(&min, str);
-//            printf(" min: %s", str);
-
-            //...and the current maximum mass
-            mass_to_string(&max, str);
-//            printf(" max: %s\n", str);
-
-        }
-        else {
-            printf("Failed to read weight\n");
         }
         sleep_ms(200);
         gpio_put(led_pin, false);
         sleep_ms(200);
-
     }
-
-    return EXIT_SUCCESS;
-
 }
-//int main(void) {
-//
-//    stdio_init_all();
-//    gpio_init(led_pin);
-//    gpio_set_dir(led_pin, GPIO_OUT);
-//    while (!tud_cdc_connected()) {
-//        sleep_ms(1);
-//    }
-//    gpio_put(led_pin, true);
-//    hx711_config_t hxcfg;
-//    hx711_get_default_config(&hxcfg);
-//
-//    hxcfg.clock_pin = 14;
-//    hxcfg.data_pin = 15;
-//
-//    hx711_t hx;
-//
-//    // 1. Initialise
-//    hx711_init(&hx, &hxcfg);
-//
-//    //2. Power up the hx711 and set gain on chip
-//    hx711_power_up(&hx, hx711_gain_128);
-//
-//    //3. This step is optional. Only do this if you want to
-//    //change the gain AND save it to the HX711 chip
-//    //
-//    //hx711_set_gain(&hx, hx711_gain_64);
-//    //hx711_power_down(&hx);
-//    //hx711_wait_power_down();
-//    //hx711_power_up(&hx, hx711_gain_64);
-//
-//    // 4. Wait for readings to settle
-//    hx711_wait_settle(hx711_rate_80);
-//
-//    // 5. Read values
-//    // You can now...
-//
-//    // wait (block) until a value is obtained
-//    // cppcheck-suppress invalidPrintfArgType_sint
-//    printf("blocking value: %li\n", hx711_get_value(&hx));
-//
-//    // or use a timeout
-//    int32_t val;
-//    const uint timeout = 250000; //microseconds
-//    if(hx711_get_value_timeout(&hx, &val, timeout)) {
-//        // value was obtained within the timeout period,
-//        // in this case within 250 milliseconds
-//        // cppcheck-suppress invalidPrintfArgType_sint
-//        printf("timeout value: %li\n", val);
-//    }
-//    else {
-//        printf("value was not obtained within the timeout period\n");
-//    }
-//
-//    // or see if there's a value, but don't block if there isn't one ready
-//    if(hx711_get_value_noblock(&hx, &val)) {
-//        // cppcheck-suppress invalidPrintfArgType_sint
-//        printf("noblock value: %li\n", val);
-//    }
-//    else {
-//        printf("value was not present\n");
-//    }
-//
-//    //6. Stop communication with HX711
-//
-//
-//    printf("Closed communication with single HX711 chip\n");
-//    while(1){
-//        printf("Blinking!\r\n");
-//        gpio_put(led_pin, true);
-//        sleep_ms(100);
-//        printf("blocking value: %li\n", hx711_get_value(&hx));
-//        gpio_put(led_pin, false);
-//        sleep_ms(100);
-//    }
-//    hx711_close(&hx);
-//    return EXIT_SUCCESS;
-//
-//}
-
-//#include "pico/stdlib.h"
-//#include "common.h"
-//#include "tusb.h"
-//#include <stdio.h>
-//
-//
-//
-//const uint8_t led_pin = 25;
-//int main(){
-//    while (!tud_cdc_connected()) {
-//        sleep_ms(1);
-//    }
-//    //Init LED Pin
-//    gpio_init(led_pin);
-//    gpio_set_dir(led_pin, GPIO_OUT);
-//
-//    //Init chosen serial port
-//    stdio_init_all();
-//    hx711_t hx;
-//    hx711_config_t hxcnfg;
-//    hx711_get_default_config(&hxcnfg);
-//    hxcnfg.clock_pin=14;
-//    hxcnfg.data_pin=15;
-//
-//    hx711_init(&hx, &hxcnfg);
-//    hx711_power_up(&hx, hx711_gain_128);
-//    hx711_wait_settle(hx711_rate_10);
-//    while(true) {
-//        printf("Blinking!\r\n");
-//        gpio_put(led_pin, true);
-//        sleep_ms(1000);
-//        printf("blocking value: %li\n", hx711_get_value(&hx));
-//        gpio_put(led_pin, false);
-//        sleep_ms(1000);
-//    }
-//}
-//
-//
-//
