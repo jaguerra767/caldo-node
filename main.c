@@ -58,24 +58,6 @@ read_process_t get_full_message_status(size_t message_len) {
     return MSG_COMPLETE;
 }
 
-message_t read_short_message(message_t current_message) {
-    const int ch = getchar_timeout_us(0);
-    message_t new_message;
-    new_message.length = current_message.length;
-    memset(new_message.data, 0, BUFFER_LEN);
-    if (ch != -1) {
-        if (ch == '\n') {
-            new_message.status = get_full_message_status(current_message.length);
-            new_message.length = current_message.length;
-            memcpy(new_message.data, current_message.data, BUFFER_LEN);
-        }
-        new_message.data[new_message.length] = ch;
-        new_message.length++;
-    }
-    new_message.status = READING;
-    return new_message;
-}
-
 typedef enum {
     ACTUATOR,
     LOAD_CELL,
@@ -124,15 +106,6 @@ device_t get_device_name(uint8_t dev) {
     }
 }
 
-command_t parse_short_message(message_t msg) {
-    command_t command;
-    command.device = get_device_name(msg.data[1]);
-    command.device_id = msg.data[1];
-    if (command.device == ACTUATOR && msg.length == 3) {
-        command.operator = get_actuator_op_type(msg.data[2]);
-    }
-    return command;
-}
 
 command_t parse_msg(ring_buffer_t *buffer) {
     command_t result;
@@ -163,15 +136,19 @@ int main(void) {
     }
     tare();
     for (;;) {
+
         gpio_put(led_pin, true);
         read_process_t rp = read_message(&rb);
         command_t cmd;
         if (rp == MSG_COMPLETE) {
             printf("Message received\n");
             cmd = parse_msg(&rb);
-        }
-        if (cmd.device == LOAD_CELL) {
-            scale_measure();
+            if (cmd.device == LOAD_CELL) {
+                scale_measure();
+            }
+            if (cmd.device == ACTUATOR){
+                actuator(cmd.operator);
+            }
         }
         sleep_ms(200);
         gpio_put(led_pin, false);
