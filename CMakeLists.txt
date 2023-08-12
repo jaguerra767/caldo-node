@@ -12,6 +12,10 @@ add_executable(caldo_node
         main.c
         ring_buffer.c
         ring_buffer.h
+        scale.c
+        scale.h
+        actuator.c
+        actuator.h
 )
 
 pico_add_extra_outputs(${PROJECT_NAME})
@@ -25,6 +29,8 @@ target_link_libraries(${PROJECT_NAME}
         pico_stdlib
         hardware_pio
         pico-scale
+        adc_read
+        hardware_adc
 )
 #add_subdirectory(${PROJECT_SOURCE_DIR}/extern/pico-scale/extern/hx711-pico-c)
 add_subdirectory(${PROJECT_SOURCE_DIR}/extern/pico-scale)
