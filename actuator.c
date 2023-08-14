@@ -38,7 +38,7 @@ void actuator_off(){
     gpio_put(open_pin, false);
 }
 
-void actuator(operator_t op){
+uint16_t actuator(operator_t op){
     const uint16_t pot_raw = adc_read();
     const pot_state_t pot_state = get_pot_state(pot_raw);
     if(pot_state == AT_OP_LIMIT){
@@ -51,8 +51,11 @@ void actuator(operator_t op){
 
     if(op == OPEN){
         gpio_put(open_pin, true);
+        gpio_put(close_pin, false);
     }
     if (op == CLOSE){
         gpio_put(close_pin, true);
+        gpio_put(open_pin, false);
     }
+    return pot_raw;
 }

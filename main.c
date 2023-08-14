@@ -147,7 +147,8 @@ int main(void) {
                 scale_measure();
             }
             if (cmd.device == ACTUATOR){
-                actuator(cmd.operator);
+                uint16_t  pot_val = actuator(cmd.operator);
+                printf("Current Pot value: %d", pot_val);
             }
         }
         sleep_ms(200);

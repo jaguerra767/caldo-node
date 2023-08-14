@@ -12,6 +12,6 @@ typedef enum {
 
 void actuator_io_setup();
 void actuator_off();
-void actuator(operator_t op);
+uint16_t actuator(operator_t op);
 
 #endif //CALDO_NODE_ACTUATOR_H
