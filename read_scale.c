@@ -1,7 +1,7 @@
 //
 // Created by Jorge Guerra on 8/11/23.
 //
-#include "scale.h"
+#include "read_scale.h"
 #include "../include/hx711_scale_adaptor.h"
 #include "../include/scale.h"
 #include <pico/printf.h>
@@ -9,29 +9,32 @@
 
 #define SCALE_BUFFER_LENGTH 100
 #define MASS_TO_STR_BUFF_SIZE 64
+#define READ_BUFFER_LEN 1000
 
+int32_t buffer[SCALE_BUFFER_LENGTH];
 
+hx711_t hx = {0};
+hx711_config_t hxcfg = {0};
+hx711_scale_adaptor_t hxsa = {0};
 
-static int32_t buffer[SCALE_BUFFER_LENGTH];
-
-static hx711_t hx = {0};
-static hx711_config_t hxcfg = {0};
-static hx711_scale_adaptor_t hxsa = {0};
-
-static scale_t sc = {0};
-static scale_options_t opt = {0};
+scale_t sc = {0};
+scale_options_t opt = {0};
 
 const mass_unit_t unit = mass_g;
 const int32_t refUnit = 432;
 const int32_t offset = -367539;
 
+
+
+
+
 static mass_t mass;
 
 void setup_scales(){
     //Initialize scale options
+    scale_options_get_default(&opt);
     opt.buffer = buffer;
     opt.bufflen = SCALE_BUFFER_LENGTH;
-    scale_options_get_default(&opt);
     //Config hx711
     hx711_get_default_config(&hxcfg);
     hxcfg.clock_pin = 14;

@@ -28,7 +28,7 @@
 #include "pico/stdio.h"
 #include "tusb.h"
 #include "ring_buffer.h"
-#include "scale.h"
+#include "read_scale.h"
 #include "actuator.h"
 
 #define BUFFER_LEN 100
@@ -63,7 +63,6 @@ typedef enum {
     LOAD_CELL,
     UNKNOWN
 } device_t;
-
 
 
 typedef struct {
@@ -113,7 +112,10 @@ command_t parse_msg(ring_buffer_t *buffer) {
     result.device_id = ring_buffer_read(buffer);
     if (result.device == ACTUATOR) {
         result.operator = get_actuator_op_type(ring_buffer_read(buffer));
+    }else{
+        result.operator = 0; //Used so that we don't have a null at operator
     }
+//    printf("Device name: %d, Device ID: %d, Operator: %d\n", result.device, result.device_id, result.operator);
     return result;
 }
 
@@ -121,6 +123,7 @@ void setup_gpio() {
     stdio_init_all();
     gpio_init(led_pin);
     gpio_set_dir(led_pin, GPIO_OUT);
+    actuator_io_setup();
 }
 
 
@@ -135,13 +138,11 @@ int main(void) {
         sleep_ms(1);
     }
     tare();
-    for (;;) {
 
-        gpio_put(led_pin, true);
+    for (;;) {
         read_process_t rp = read_message(&rb);
         command_t cmd;
         if (rp == MSG_COMPLETE) {
-            printf("Message received\n");
             cmd = parse_msg(&rb);
             if (cmd.device == LOAD_CELL) {
                 scale_measure();
@@ -151,6 +152,7 @@ int main(void) {
                 printf("Current Pot value: %d", pot_val);
             }
         }
+        gpio_put(led_pin, true);
         sleep_ms(200);
         gpio_put(led_pin, false);
         sleep_ms(200);
