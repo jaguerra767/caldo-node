@@ -53,12 +53,10 @@ void actuator_limits(){
 
     if(pot_state == AT_OP_LIMIT){
         gpio_put(open_pin, false);
-        //printf("act open limit\n");
     }
 
     if (pot_state == AT_CL_LIMIT){
         gpio_put(close_pin, false);
-        //printf("act close limit\n");
     }
 }
 
