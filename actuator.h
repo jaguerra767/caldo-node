@@ -11,6 +11,7 @@ typedef enum {
 } operator_t;
 
 void actuator_io_setup();
+void actuator_limits();
 void actuator_off();
 uint16_t actuator(operator_t op);
 

@@ -140,6 +140,7 @@ int main(void) {
     tare();
 
     for (;;) {
+        actuator_limits();
         read_process_t rp = read_message(&rb);
         command_t cmd;
         if (rp == MSG_COMPLETE) {
