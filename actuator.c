@@ -9,11 +9,6 @@
 #define ACTUATOR_LIMIT 4000
 #define ACT_OPEN_POS 20
 
-typedef enum {
-    AT_OP_LIMIT,
-    AT_CL_LIMIT,
-    IND
-}pot_state_t;
 
 const uint8_t open_pin = 12;
 const uint8_t close_pin = 13;
@@ -37,43 +32,27 @@ pot_state_t get_pot_state(uint16_t pot_raw){
     return IND;
 }
 
-
-
 void actuator_off(){
     gpio_put(close_pin, false);
     gpio_put(open_pin, false);
 }
 
-//add a timeout to turn off when motion is complete/ or a time to allow actuator to
-//get out of the limits
 
-void actuator_limits(){
+
+pot_state_t actuator_limits(){
     const uint16_t pot_raw = adc_read();
     const pot_state_t pot_state = get_pot_state(pot_raw);
-
     if(pot_state == AT_OP_LIMIT){
         gpio_put(open_pin, false);
     }
-
     if (pot_state == AT_CL_LIMIT){
         gpio_put(close_pin, false);
     }
+    return pot_state;
 }
 
 uint16_t actuator(operator_t op){
-    const uint16_t pot_raw = adc_read();
-    const pot_state_t pot_state = get_pot_state(pot_raw);
-
-    if(pot_state == AT_OP_LIMIT){
-        gpio_put(open_pin, false);
-        printf("act open limit\n");
-    }
-
-    if (pot_state == AT_CL_LIMIT){
-        gpio_put(close_pin, false);
-        printf("act close limit\n");
-    }
-
+    const pot_state_t pot_state =  actuator_limits();
     if(op == OPEN && pot_state != AT_OP_LIMIT){
         gpio_put(open_pin, true);
         gpio_put(close_pin, false);
@@ -84,5 +63,5 @@ uint16_t actuator(operator_t op){
         gpio_put(open_pin, false);
         printf("closing\n");
     }
-    return pot_raw;
+    return adc_read();
 }

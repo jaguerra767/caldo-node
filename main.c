@@ -37,26 +37,8 @@ const uint8_t led_pin = 25;
 typedef enum {
     READING,
     MSG_COMPLETE,
-    INVALID_MSG
 } read_process_t;
 
-typedef struct {
-    read_process_t status;
-    size_t length;
-} message_status_t;
-
-typedef struct {
-    read_process_t status;
-    size_t length;
-    uint8_t data[BUFFER_LEN];
-} message_t;
-
-read_process_t get_full_message_status(size_t message_len) {
-    if (message_len <= 1) {
-        return INVALID_MSG;
-    }
-    return MSG_COMPLETE;
-}
 
 typedef enum {
     ACTUATOR,
@@ -134,11 +116,12 @@ int main(void) {
     memset(msg_buffer, 0, BUFFER_LEN);
     setup_gpio();
     setup_scales();
+    actuator_off();
+    tare();
     while (!tud_cdc_connected()) {
         sleep_ms(1);
     }
-    tare();
-
+    printf("Ryo component ID: Node");
     for (;;) {
         actuator_limits();
         read_process_t rp = read_message(&rb);

@@ -10,8 +10,14 @@ typedef enum {
     INVALID
 } operator_t;
 
+typedef enum {
+    AT_OP_LIMIT,
+    AT_CL_LIMIT,
+    IND
+}pot_state_t;
+
 void actuator_io_setup();
-void actuator_limits();
+pot_state_t actuator_limits();
 void actuator_off();
 uint16_t actuator(operator_t op);
 
