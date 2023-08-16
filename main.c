@@ -23,6 +23,7 @@
 
 
 #include <string.h>
+#include <time.h>
 #include <pico/printf.h>
 #include "hardware/adc.h"
 #include "pico/stdio.h"
@@ -74,7 +75,6 @@ typedef struct {
 read_process_t read_message(ring_buffer_t *buffer) {
     int ch = getchar_timeout_us(0);
     if (ch != -1) {
-        //Leaving '\n' out of the buffer because we process messages right away... revisit if this sucks
         if (ch == '\n') {
             return MSG_COMPLETE;
         }
@@ -115,7 +115,6 @@ command_t parse_msg(ring_buffer_t *buffer) {
     }else{
         result.operator = 0; //Used so that we don't have a null at operator
     }
-//    printf("Device name: %d, Device ID: %d, Operator: %d\n", result.device, result.device_id, result.operator);
     return result;
 }
 
@@ -126,7 +125,9 @@ void setup_gpio() {
     actuator_io_setup();
 }
 
-
+clock_t clock() {
+    return (clock_t) time_us_64() / 10000;
+}
 
 int main(void) {
     uint8_t msg_buffer[BUFFER_LEN];
@@ -138,8 +139,18 @@ int main(void) {
         sleep_ms(1);
     }
     tare();
-
+    clock_t start_time = clock();
     for (;;) {
+        const clock_t current_time = clock();
+        const double exec_time_secs = (double)(current_time - start_time)/CLOCKS_PER_SEC;
+        if(exec_time_secs < 0.2){
+            gpio_put(led_pin, true);
+        }else{
+            gpio_put(led_pin, false);
+        }
+        if(exec_time_secs > 0.4){
+            start_time = clock();
+        }
         actuator_limits();
         read_process_t rp = read_message(&rb);
         command_t cmd;
@@ -153,9 +164,5 @@ int main(void) {
                 printf("Current Pot value: %d", pot_val);
             }
         }
-        gpio_put(led_pin, true);
-        sleep_ms(200);
-        gpio_put(led_pin, false);
-        sleep_ms(200);
     }
 }
