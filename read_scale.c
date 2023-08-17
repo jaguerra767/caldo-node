@@ -4,8 +4,11 @@
 #include "read_scale.h"
 #include "../include/hx711_scale_adaptor.h"
 #include "../include/scale.h"
+#include "comms.h"
+#include <math.h>
 #include <pico/printf.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define SCALE_BUFFER_LENGTH 100
 #define MASS_TO_STR_BUFF_SIZE 64
@@ -21,8 +24,8 @@ scale_t sc = {0};
 scale_options_t opt = {0};
 
 const mass_unit_t unit = mass_g;
-const int32_t refUnit = 1;
-const int32_t offset = 0;
+int32_t refUnit = 1;
+int32_t offset = 0;
 
 
 
@@ -75,4 +78,47 @@ void scale_measure(){
     else {
         printf("Failed to read weight\n");
     }
+}
+
+void calibrate(){
+    double raw = 0;
+    char cal_buffer[SCALE_BUFFER_LENGTH];
+    opt.samples = 1000;
+
+    printf("****************** Starting Calibration Procedure ******************\n");
+
+    printf("\n1. Pick an object and enter its weight in grams.\n");
+    get_line(cal_buffer, sizeof(cal_buffer));
+    const double known_weight = atof(cal_buffer);
+    if(known_weight < 1){
+        printf("\nPlease select a weight higher than 1 gram and relaunch process.\n");
+        return;
+    }
+    printf("\nWeight entered: %f.\n", known_weight);
+
+    printf("\n2. Remove all items from the scale, then press enter.\n");
+    getchar();
+
+    printf("\nCalibration in process, getting 'zero value'...\n");
+    if(!scale_read(&sc, &raw, &opt)){
+        printf("\nUnable to read from scale, check wiring.\n");
+        return;
+    }
+    const int32_t zero_value = (int32_t)round(raw);
+
+    printf("\n3. Place known weight object on scale and then press enter.\n");
+    getchar();
+
+    printf("\nMeasuring known weight object...\n");
+    if(!scale_read(&sc, &raw, &opt)){
+        printf("\nUnable to read from scale, check wiring.\n");
+        return;
+    }
+    const double ref_unit_float = (raw - zero_value)/known_weight;
+    refUnit = (int32_t)round(ref_unit_float);
+    if(refUnit == 0){
+        refUnit++;
+    }
+    printf("\nNew reference unit: %ld, new offset %ld\n", refUnit, offset);
+    printf("****************** Finished Calibration Procedure ******************\n");
 }

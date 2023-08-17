@@ -15,6 +15,8 @@ add_executable(caldo_node
         actuator.c
         actuator.h
         read_scale.c
+        comms.h
+        comms.c
 )
 
 pico_add_extra_outputs(${PROJECT_NAME})

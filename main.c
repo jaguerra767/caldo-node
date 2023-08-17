@@ -32,36 +32,22 @@
 #include "read_scale.h"
 #include "actuator.h"
 
+
+
 #define BUFFER_LEN 100
 const uint8_t led_pin = 25;
 
 typedef enum {
     READING,
     MSG_COMPLETE,
-    INVALID_MSG
 } read_process_t;
 
-typedef struct {
-    read_process_t status;
-    size_t length;
-} message_status_t;
-
-typedef struct {
-    read_process_t status;
-    size_t length;
-    uint8_t data[BUFFER_LEN];
-} message_t;
-
-read_process_t get_full_message_status(size_t message_len) {
-    if (message_len <= 1) {
-        return INVALID_MSG;
-    }
-    return MSG_COMPLETE;
-}
 
 typedef enum {
     ACTUATOR,
+    CALIBRATE,
     LOAD_CELL,
+    TARE,
     UNKNOWN
 } device_t;
 
@@ -96,12 +82,11 @@ operator_t get_actuator_op_type(uint8_t op) {
 
 device_t get_device_name(uint8_t dev) {
     switch (dev) {
-        case 'l':
-            return LOAD_CELL;
-        case 'a':
-            return ACTUATOR;
-        default:
-            return UNKNOWN;
+        case 'c': return CALIBRATE;
+        case 'l': return LOAD_CELL;
+        case 't': return TARE;
+        case 'a': return ACTUATOR;
+        default: return UNKNOWN;
     }
 }
 
@@ -138,7 +123,6 @@ int main(void) {
     while (!tud_cdc_connected()) {
         sleep_ms(1);
     }
-    tare();
     clock_t start_time = clock();
     for (;;) {
         const clock_t current_time = clock();
@@ -154,15 +138,28 @@ int main(void) {
         actuator_limits();
         read_process_t rp = read_message(&rb);
         command_t cmd;
+        uint16_t  pot_val;
         if (rp == MSG_COMPLETE) {
             cmd = parse_msg(&rb);
-            if (cmd.device == LOAD_CELL) {
-                scale_measure();
-            }
-            if (cmd.device == ACTUATOR){
-                uint16_t  pot_val = actuator(cmd.operator);
-                printf("Current Pot value: %d", pot_val);
+            switch (cmd.device) {
+                case LOAD_CELL:
+                    scale_measure();
+                    break;
+                case CALIBRATE:
+                    calibrate();
+                    break;
+                case ACTUATOR:
+                    pot_val = actuator(cmd.operator);
+                    printf("Current Pot value: %d\n", pot_val);
+                    break;
+                case TARE:
+                    tare();
+                    break;
+                case UNKNOWN:
+                    printf("Unknown action sent.\n");
+                    break;
             }
         }
+        sleep_us(1000);
     }
 }
