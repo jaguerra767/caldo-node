@@ -11,4 +11,4 @@ cmake-build-debug-arm-gcc/
 vcs.xml
 *.xml
 
-nodes/.idea/
+../.idea/
