@@ -8,5 +8,7 @@ cmake-build-debug-arm-gcc/
 .vscode/
 
 #ignore files not needed to build
-
+vcs.xml
 *.xml
+
+nodes/.idea/
