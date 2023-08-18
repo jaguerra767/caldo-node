@@ -115,8 +115,8 @@ void calibrate(){
         printf("\nUnable to read from scale, check wiring.\n");
         return;
     }
-    const double ref_unit_float = (raw - zero_value)/known_weight;
-    refUnit = (int32_t)round(ref_unit_float);
+    //const double ref_unit_float = (raw - zero_value)/known_weight;
+    //refUnit = (int32_t)round(ref_unit_float);
     if(refUnit == 0){
         refUnit++;
     }
