@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include <time.h>
+#include <stdio.h>
 #include <pico/printf.h>
 #include "hardware/adc.h"
 #include "pico/stdio.h"
@@ -34,7 +35,7 @@
 
 
 
-#define BUFFER_LEN 100
+#define BUFFER_LEN 15
 const uint8_t led_pin = 25;
 
 typedef enum {
@@ -60,14 +61,16 @@ typedef struct {
 
 read_process_t read_message(ring_buffer_t *buffer) {
     int ch = getchar_timeout_us(0);
-    if (ch != -1) {
+    if (ch != PICO_ERROR_TIMEOUT) {
+        ring_buffer_write(buffer, ch);
         if (ch == '\n') {
             return MSG_COMPLETE;
         }
-        ring_buffer_write(buffer, ch);
     }
     return READING;
 }
+
+
 
 operator_t get_actuator_op_type(uint8_t op) {
     switch (op) {
@@ -100,6 +103,7 @@ command_t parse_msg(ring_buffer_t *buffer) {
     }else{
         result.operator = 0; //Used so that we don't have a null at operator
     }
+    ring_buffer_read(buffer);//get rid of /n
     return result;
 }
 
@@ -114,6 +118,7 @@ clock_t clock() {
     return (clock_t) time_us_64() / 10000;
 }
 
+
 int main(void) {
     uint8_t msg_buffer[BUFFER_LEN];
     ring_buffer_t rb = {.buffer=msg_buffer, .write_index=0, .read_index=0, .max_length=BUFFER_LEN};
@@ -124,6 +129,7 @@ int main(void) {
         sleep_ms(1);
     }
     clock_t start_time = clock();
+
     for (;;) {
         const clock_t current_time = clock();
         const double exec_time_secs = (double)(current_time - start_time)/CLOCKS_PER_SEC;
@@ -160,6 +166,6 @@ int main(void) {
                     break;
             }
         }
-        sleep_us(1000);
+        sleep_us(100);
     }
 }

@@ -24,8 +24,8 @@ scale_t sc = {0};
 scale_options_t opt = {0};
 
 const mass_unit_t unit = mass_g;
-int32_t refUnit = 1;
-int32_t offset = 0;
+int32_t refUnit = 31;
+int32_t offset = 292452;
 
 
 
@@ -45,7 +45,7 @@ void setup_scales(){
     //Initialize hx711
     hx711_init(&hx, &hxcfg);
     hx711_power_up(&hx, hx711_gain_128);
-    hx711_wait_settle(hx711_rate_80);
+    hx711_wait_settle(hx711_rate_10);
     //Scale adaptor init
     hx711_scale_adaptor_init(&hxsa, &hx);
     //Scale init
@@ -81,8 +81,9 @@ void scale_measure(){
 }
 
 void calibrate(){
-    double raw = 0;
     char cal_buffer[SCALE_BUFFER_LENGTH];
+    double raw = 0;
+
     opt.samples = 1000;
 
     printf("****************** Starting Calibration Procedure ******************\n");
@@ -121,4 +122,8 @@ void calibrate(){
     }
     printf("\nNew reference unit: %ld, new offset %ld\n", refUnit, offset);
     printf("****************** Finished Calibration Procedure ******************\n");
+    printf("Raw value: %ld\n", (int32_t)raw);
+    printf("reference unit: %ld\n", refUnit);
+    printf("Zero Value: %ld\n", zero_value);
+    printf("Provide Zero value as offset and reference unit to program and recompile.");
 }
