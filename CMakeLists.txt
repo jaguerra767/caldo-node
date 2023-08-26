@@ -18,6 +18,7 @@ add_executable(caldo_node
         comms.h
         comms.c
         timing.h
+        timing.c
 )
 
 pico_add_extra_outputs(${PROJECT_NAME})

@@ -8,8 +8,6 @@
 #include <hardware/timer.h>
 
 
-inline clock_t clock() {
-    return (clock_t) time_us_64() / 10000;
-}
+clock_t clock();
 
 #endif //CALDO_NODE_TIMING_H
