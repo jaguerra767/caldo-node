@@ -27,10 +27,6 @@ const mass_unit_t unit = mass_g;
 int32_t refUnit = 31;
 int32_t offset = 292452;
 
-
-
-
-
 static mass_t mass;
 
 void setup_scales(){
@@ -50,12 +46,13 @@ void setup_scales(){
     hx711_scale_adaptor_init(&hxsa, &hx);
     //Scale init
     scale_init(&sc, hx711_scale_adaptor_get_base(&hxsa), unit, refUnit, offset);
-    opt.strat = strategy_type_time;
-    opt.timeout = 250000;
+    opt.strat = strategy_type_samples;
+    opt.samples = 1000;
 
 }
 
 void tare(){
+    opt.strat = strategy_type_time;
     opt.timeout = 10000000;
     if(scale_zero(&sc, &opt)) {
         printf("Scale zeroed successfully\n");
@@ -64,20 +61,21 @@ void tare(){
         printf("Scale failed to zero\n");
     }
     //Change timeout back to regular after we tare
-    opt.timeout = 250000;
+    opt.strat = strategy_type_samples;
 }
 
 char str[MASS_TO_STR_BUFF_SIZE];
 
 void scale_measure(){
     memset(str, 0, MASS_TO_STRING_BUFF_SIZE);
-    if(scale_weight(&sc, &mass, &opt)) {
-        mass_to_string(&mass, str);
-        printf("%s\n", str);
-    }
-    else {
+    if(!scale_weight(&sc, &mass, &opt)) {
         printf("Failed to read weight\n");
     }
+}
+
+void send_weight(){
+    mass_to_string(&mass, str);
+    printf("%s\n", str);
 }
 
 void calibrate(){
@@ -115,8 +113,8 @@ void calibrate(){
         printf("\nUnable to read from scale, check wiring.\n");
         return;
     }
-    //const double ref_unit_float = (raw - zero_value)/known_weight;
-    //refUnit = (int32_t)round(ref_unit_float);
+    const double ref_unit_float = (raw - zero_value)/known_weight;
+    refUnit = (int32_t)round(ref_unit_float);
     if(refUnit == 0){
         refUnit++;
     }
