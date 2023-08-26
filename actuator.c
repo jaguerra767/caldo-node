@@ -56,15 +56,14 @@ pot_state_t actuator_limits(){
 }
 
 void timeout_pins(){
-    const double open_pin_on_time_secs = (double)open_pin_on_time/CLOCKS_PER_SEC;
-    const double close_pin_on_time_secs = (double)close_pin_on_time/CLOCKS_PER_SEC;
+    const clock_t current_time = clock();
+    const double open_pin_on_time_secs = (double)(current_time - open_pin_on_time)/CLOCKS_PER_SEC;
+    const double close_pin_on_time_secs = (double)(current_time - close_pin_on_time)/CLOCKS_PER_SEC;
     if(open_pin_on_time_secs > 2.3){
         gpio_put(open_pin, false);
-        open_pin_on_time = 0;
     }
     if(close_pin_on_time_secs > 2.3){
         gpio_put(close_pin, false);
-        close_pin_on_time = 0;
     }
 }
 
