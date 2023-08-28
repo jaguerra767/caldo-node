@@ -24,8 +24,9 @@ scale_t sc = {0};
 scale_options_t opt = {0};
 
 const mass_unit_t unit = mass_g;
-int32_t refUnit = 31;
-int32_t offset = 292452;
+int32_t refUnit = 41;//
+int32_t offset = 291579;// change
+
 
 static mass_t mass;
 
