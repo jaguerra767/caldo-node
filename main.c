@@ -1,6 +1,5 @@
 #include <string.h>
 #include <stdio.h>
-#include <pico/printf.h>
 #include "hardware/adc.h"
 #include "pico/stdio.h"
 #include "tusb.h"
