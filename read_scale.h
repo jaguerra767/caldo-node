@@ -9,5 +9,5 @@ void setup_scales();
 void tare();
 void scale_measure();
 void calibrate();
-
+void send_weight();
 #endif //CALDO_NODE_READ_SCALE_H
