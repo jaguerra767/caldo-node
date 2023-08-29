@@ -86,6 +86,10 @@ void setup_gpio() {
     stdio_init_all();
     gpio_init(led_pin);
     gpio_set_dir(led_pin, GPIO_OUT);
+    gpio_init(14);
+    gpio_set_dir(14, GPIO_OUT);
+    gpio_init(15);
+    gpio_set_dir(15, GPIO_IN);
     actuator_io_setup();
 }
 

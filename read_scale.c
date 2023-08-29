@@ -48,7 +48,7 @@ void setup_scales(){
     //Scale init
     scale_init(&sc, hx711_scale_adaptor_get_base(&hxsa), unit, refUnit, offset);
     opt.strat = strategy_type_samples;
-    opt.samples = 100;
+    opt.samples = 3;
 
 }
 
@@ -65,22 +65,16 @@ void tare(){
     opt.strat = strategy_type_samples;
 }
 
-char str[MASS_TO_STR_BUFF_SIZE];
 double raw_val;
 
 void scale_measure(){
-    memset(str, 0, MASS_TO_STRING_BUFF_SIZE);
-//    if(!scale_weight(&sc, &mass, &opt)) {
-//        printf("Failed to read weight\n");
-//    }
     if(!scale_read(&sc, &raw_val, &opt)){
         printf("Failed to read raw scale value");
     }
 }
 
 void send_weight(){
-    //mass_to_string(&mass, str);
-    printf("Scaled weight: %s , Raw scale value: %f\n", str, raw_val);
+    printf("Raw scale value: %f\n",raw_val);
 }
 
 void calibrate(){
