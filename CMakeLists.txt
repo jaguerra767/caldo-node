@@ -25,6 +25,7 @@ pico_add_extra_outputs(${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
         extern/pico-scale/include
+        extern/pico-scale/extern/hx711-pico-c/include
 )
 #Link to pico stdlib
 target_link_libraries(${PROJECT_NAME}
