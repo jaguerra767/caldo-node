@@ -47,7 +47,7 @@ void setup_scales(){
     //hx711_multi_power_up(&hxm, hx711_gain_64);
 
     // 4. Wait for readings to settle
-    hx711_wait_settle(hx711_rate_80);
+    hx711_wait_settle(hx711_rate_10);
 
 }
 
