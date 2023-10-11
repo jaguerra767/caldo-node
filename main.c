@@ -130,8 +130,8 @@ int main(void) {
                     calibrate();
                     break;
                 case ACTUATOR:
-                    pot_val = actuator(cmd.operator);
-                    printf("Current Pot value: %d\n", pot_val);
+                    actuator(cmd.operator);
+                    printf("Actuator moved");
                     break;
                 case TARE:
                     tare();
