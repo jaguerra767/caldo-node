@@ -118,7 +118,6 @@ int main(void) {
 
         read_process_t rp = read_message(&rb);
         command_t cmd;
-        uint16_t  pot_val;
         scale_measure();
         if (rp == MSG_COMPLETE) {
             cmd = parse_msg(&rb);
