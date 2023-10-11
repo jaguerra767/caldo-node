@@ -101,14 +101,12 @@ int main(void) {
         sleep_ms(1);
     }
     clock_t start_time = clock();
-    clock_t actuator_open_time = start_time;
-    clock_t actuator_close_time = start_time;
+
 
     for (;;) {
         const clock_t current_time = clock();
         const double exec_time_secs = (double)(current_time - start_time)/CLOCKS_PER_SEC;
-        const double actuator_open_timout_secs = (double)(current_time - actuator_open_time)/CLOCKS_PER_SEC;
-        const double actuator_close_timeout_secs = (double)(current_time - actuator_close_time)/CLOCKS_PER_SEC;
+
         if(exec_time_secs < 0.2){
             gpio_put(led_pin, true);
         }else{
@@ -117,15 +115,7 @@ int main(void) {
         if(exec_time_secs > 0.4){
             start_time = clock();
         }
-        if(actuator_open_timout_secs > 2) {
-            gpio_put(12, false);
-        }
-        if(actuator_close_timeout_secs > 2) {
-            gpio_put(13, false);
-        }
 
-
-        actuator_limits();
         read_process_t rp = read_message(&rb);
         command_t cmd;
         uint16_t  pot_val;
@@ -140,11 +130,6 @@ int main(void) {
                     calibrate();
                     break;
                 case ACTUATOR:
-                    if(cmd.operator == OPEN){
-                        actuator_open_time = current_time;
-                    }else if(cmd.operator == CLOSE){
-                        actuator_close_time = current_time;
-                    }
                     pot_val = actuator(cmd.operator);
                     printf("Current Pot value: %d\n", pot_val);
                     break;

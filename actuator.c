@@ -73,13 +73,11 @@ uint16_t actuator(operator_t op){
     if(op == OPEN && pot_state != AT_OP_LIMIT){
         gpio_put(open_pin, true);
         gpio_put(close_pin, false);
-        open_pin_on_time = clock();
         printf("opening\n");
     }
     if (op == CLOSE && pot_state != AT_CL_LIMIT){
         gpio_put(close_pin, true);
         gpio_put(open_pin, false);
-        close_pin_on_time = clock();
         printf("closing\n");
     }
     return adc_read();
