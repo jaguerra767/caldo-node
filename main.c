@@ -21,9 +21,7 @@ typedef enum {
 
 typedef enum {
     ACTUATOR,
-    CALIBRATE,
     LOAD_CELL,
-    TARE,
     UNKNOWN
 } device_t;
 
@@ -60,9 +58,7 @@ operator_t get_actuator_op_type(uint8_t op) {
 
 device_t get_device_name(uint8_t dev) {
     switch (dev) {
-        case 'c': return CALIBRATE;
         case 'l': return LOAD_CELL;
-        case 't': return TARE;
         case 'a': return ACTUATOR;
         default: return UNKNOWN;
     }
@@ -86,6 +82,16 @@ void setup_gpio() {
     stdio_init_all();
     gpio_init(led_pin);
     gpio_set_dir(led_pin, GPIO_OUT);
+    gpio_init(16);
+    gpio_set_dir(16, GPIO_OUT);
+    gpio_init(17);
+    gpio_set_dir(17, GPIO_IN);
+    gpio_init(18);
+    gpio_set_dir(18, GPIO_IN);
+    gpio_init(19);
+    gpio_set_dir(19, GPIO_IN);
+    gpio_init(20);
+    gpio_set_dir(20, GPIO_IN);
     actuator_io_setup();
 }
 
@@ -100,8 +106,8 @@ int main(void) {
     while (!tud_cdc_connected()) {
         sleep_ms(1);
     }
+    printf("Connected!\n");
     clock_t start_time = clock();
-
 
     for (;;) {
         const clock_t current_time = clock();
@@ -111,29 +117,20 @@ int main(void) {
             gpio_put(led_pin, true);
         }else{
             gpio_put(led_pin, false);
-        }
-        if(exec_time_secs > 0.4){
             start_time = clock();
         }
 
         read_process_t rp = read_message(&rb);
         command_t cmd;
-        scale_measure();
         if (rp == MSG_COMPLETE) {
             cmd = parse_msg(&rb);
             switch (cmd.device) {
                 case LOAD_CELL:
-                    send_weight();
-                    break;
-                case CALIBRATE:
-                    calibrate();
+                    scale_measure();
                     break;
                 case ACTUATOR:
                     actuator(cmd.operator);
-                    printf("Actuator moved");
-                    break;
-                case TARE:
-                    tare();
+                    printf("actuator command sent\n");
                     break;
                 case UNKNOWN:
                     printf("Unknown action sent.\n");

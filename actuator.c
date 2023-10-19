@@ -11,8 +11,8 @@
 #define ACT_OPEN_POS 20
 
 
-const uint8_t open_pin = 12;
-const uint8_t close_pin = 13;
+const uint8_t open_pin = 21;
+const uint8_t close_pin = 22;
 
 clock_t open_pin_on_time = {0};
 clock_t close_pin_on_time = {0};
@@ -59,10 +59,10 @@ void timeout_pins(){
     const clock_t current_time = clock();
     const double open_pin_on_time_secs = (double)(current_time - open_pin_on_time)/CLOCKS_PER_SEC;
     const double close_pin_on_time_secs = (double)(current_time - close_pin_on_time)/CLOCKS_PER_SEC;
-    if(open_pin_on_time_secs > 2.3){
+    if(open_pin_on_time_secs > 10){
         gpio_put(open_pin, false);
     }
-    if(close_pin_on_time_secs > 2.3){
+    if(close_pin_on_time_secs > 10){
         gpio_put(close_pin, false);
     }
 }
@@ -73,12 +73,10 @@ uint16_t actuator(operator_t op){
     if(op == OPEN && pot_state != AT_OP_LIMIT){
         gpio_put(open_pin, true);
         gpio_put(close_pin, false);
-        printf("opening\n");
     }
     if (op == CLOSE && pot_state != AT_CL_LIMIT){
         gpio_put(close_pin, true);
         gpio_put(open_pin, false);
-        printf("closing\n");
     }
     return adc_read();
 }
