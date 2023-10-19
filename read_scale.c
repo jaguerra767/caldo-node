@@ -30,6 +30,6 @@ void setup_scales(){
 
 void scale_measure(){
     hx711_multi_get_values(&hxm, buffer);
-    printf("%li, %li, %li, %li\n", buffer[0], buffer[1], buffer[2], buffer[3]);
+    printf("%li %li %li %li\n", buffer[0], buffer[1], buffer[2], buffer[3]);
 }
 
