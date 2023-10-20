@@ -28,8 +28,18 @@ void setup_scales(){
 
 }
 
-void scale_measure(){
-    hx711_multi_get_values(&hxm, buffer);
+void scale_measure(uint8_t samples){
+    int32_t temp_buffer[4];
+    while(samples){
+        hx711_multi_get_values(&hxm, temp_buffer);
+        for(int i = 0; i < sizeof(buffer); i++){
+            buffer[i] = buffer[i] + temp_buffer[i];
+        }
+        samples--;
+    }
+    for(int i = 0; i < sizeof(buffer); i++){
+        buffer[i] = buffer[i]/((int16_t)samples);
+    }
     printf("%li,%li,%li,%li\n", buffer[0], buffer[1], buffer[2], buffer[3]);
 }
 

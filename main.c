@@ -71,7 +71,7 @@ command_t parse_msg(ring_buffer_t *buffer) {
     result.device_id = ring_buffer_read(buffer);
     if (result.device == ACTUATOR) {
         result.operator = get_actuator_op_type(ring_buffer_read(buffer));
-    }else{
+    }else if(result.device==LOAD_CELL){
         result.operator = 0; //Used so that we don't have a null at operator
     }
     ring_buffer_read(buffer);//get rid of /n
@@ -126,7 +126,7 @@ int main(void) {
             cmd = parse_msg(&rb);
             switch (cmd.device) {
                 case LOAD_CELL:
-                    scale_measure();
+                    scale_measure(cmd.device_id);
                     break;
                 case ACTUATOR:
                     actuator(cmd.operator);

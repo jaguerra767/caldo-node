@@ -4,10 +4,9 @@
 
 #ifndef CALDO_NODE_READ_SCALE_H
 #define CALDO_NODE_READ_SCALE_H
+#include "pico/stdio.h"
 
 void setup_scales();
-void tare();
-void scale_measure();
-void calibrate();
-void send_weight();
+void scale_measure(uint8_t samples);
+
 #endif //CALDO_NODE_READ_SCALE_H
